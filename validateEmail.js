@@ -11,6 +11,8 @@ $('.email').bind('change keypress keydown keyup', function () {
     $(this).removeClass('error');
     $('.errormail').hide();
     // Знімаємо блокування кнопки
+    $('.testEmailButton').prop('disabled', false);
+    $('.testEmailButton').removeClass('disbtn');
 });
 
 // Запускаємо перевірку поля з email
@@ -116,7 +118,9 @@ function testEmail(emailObj) {
     // Якщо все окей, знімаємо блокування кнопки відправки форми
     $('.testEmailButton').prop('disabled', true);
     $('.testEmailButton').addClass('disbtn');
+    // Виводимо змінений email в формі візуально
     $(emailObj).val(email);
+
     return email;
 
 }
