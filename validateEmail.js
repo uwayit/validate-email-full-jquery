@@ -110,6 +110,8 @@ function testEmail(emailObj) {
         return false;
     }
 
+    // Фінально приводимо всі синоніми до стандарту
+    email = buildStandartEmail(email);
 
     // Якщо все окей, знімаємо блокування кнопки відправки форми
     $('.testEmailButton').prop('disabled', true);
@@ -523,8 +525,6 @@ function validateEmail(email) {
 
 
 function buildStandartEmail(email) {
-    // Видаляємо пробіли на початку і в кінці рядка та всі пробіли всередині рядка та приводимо до нижнього регістру
-    email = email.trim().replace(/\s+/g, '').toLowerCase();
 
     // За замовчуванням так і запишемо якщо нічого не змінимо
     let StandartEmail = email;
