@@ -20,32 +20,20 @@ function testEmail(emailObj) {
     $('.testEmailButton').prop('disabled', true);
     $('.testEmailButton').addClass('disbtn');
 
-    // Який класс додаватимемо полю email у випадку якщо виникла помилка
-    let errorClass = 'error';
-
     // Берем з об'єкту email
     let email = $(emailObj).val();
+    let err = [];
 
-    // понижуємо регістр
-    email = email.toLowerCase();
+    // Чистимо мило від УСІХ пробілів та плюсу на початку
+    // приводимо до нижнього регістру
+    email = initialPreparation(email);
 
-    // Чистимо мило від УСІХ пробілів та плюсів на початку мила
-    email = deleteSpaсeAndPlus(email);
-
-    // Виправляємо можливі баги placeholder etc
-    if (email == 'email') {
+    // Згладжуємо можливі баги в тому числі баги placeholder etc
+    if (!email || email === 'email') {
         $(emailObj).val('');
         $(emailObj).addClass('error');
         return false;
     }
-
-    // Невідома помилка
-    if (email == false) {
-        $(emailObj).val('');
-        $(emailObj).addClass('error');
-        return false;
-    }
-    $(emailObj).val(email);
 
     // Тихо видаляємо www в мильнику, бо то явно помилка і йдемо далі
     // АЛЕ
@@ -56,47 +44,23 @@ function testEmail(emailObj) {
     let www = email.split('www.');
     if (www.length > 1) {
         email = www.join('');
-        $(emailObj).val(email);
     }
 
-
     // Перевірка та мовчазне непомітне для клієнта виправлення найбільш типових та явних друкарських помилок у мильниках
-    $(emailObj).val($(emailObj).val().replace('yandex.com.ua', 'yandex.ua'));
-    $(emailObj).val($(emailObj).val().replace('gmail.com.ua', 'gmail.com'));
+    email = email.replace('yandex.com.ua', 'yandex.ua');
+    email = email.replace('gmail.com.ua', 'gmail.com');
 
-    email = $(emailObj).val();
-
+    // Після видалення www
     // Деперсоналізуємо email видаляючи з нього додаткові фільтруючі патерни
     // myemail+work@gmail.com = myemail@gmail.com
     email = clearPlus(email);
-    if (email == false) {
-        $(emailObj).addClass('error');
-        return false;
-    }
-    
-    $(emailObj).val(email);
 
 
-
-    // Якась стара історія
-    // Здається яндекс ящики не можуть містити номер телефона
-    // Або власник якогось сайту не хтів приймати такі заявки
-    // Наразі не використовую
-    let yaphone = true;
-    // let yaphone = isEmailValidByFnone(email);
-    if (yaphone == false) {
-        let err = 'yaphone';
-        //console.log(err);
-        $('.' + err).show();
-        $(emailObj).addClass('error');
-        return false;
-    }
-
-    // Перевіряємо, чи не використовує клієнт точно ЛЄВОЄ мило
+    // Не даємо клієнту вказувати відверто брехливі email
     let nonoe = isEmailValidyou(email);
     if (nonoe == false) {
         let err = 'nonoe';
-        //console.log(err);
+        err.push('nonoe');
         $('.' + err).show();
         $(emailObj).addClass('error');
         return false;
@@ -108,17 +72,16 @@ function testEmail(emailObj) {
     let grubo = validateEmail(email);
     if (!grubo) {
         let err = 'validateEmail';
-        //console.log(err);
+        err.push('validateEmail');
         $('.' + err).show();
         $(emailObj).addClass('error');
         return false;
     }
 
-    // Перевіряємо здебільшого синтаксис імені
+    // Перевіряємо синтаксис імені
     let newte = isEmailValid(email);
     if (newte == false) {
-        let err = 'newte';
-        //console.log(err);
+        err.push('sintaksisEr');
         $('.' + err).show();
         $(emailObj).addClass('error');
         return false;
@@ -128,17 +91,30 @@ function testEmail(emailObj) {
     // Здебільшого це захист від помилкового введення того що після собачки
     let newtestZone = testZone(email);
     if (newtestZone == false) {
-        let err = 'newtestZone';
-        //console.log(err);
+        err.push('newtestZone');
         $('.' + err).show();
         $(emailObj).addClass('error');
         return false;
     }
 
+    // Якась стара історія
+    // Здається яндекс ящики не можуть містити номер телефона
+    // Або власник якогось сайту не хтів приймати такі заявки
+    // Наразі не використовую
+    let yaphone = true;
+    // let yaphone = phoneInEmail(email);
+    if (yaphone == false) {
+        err.push('yaphone');
+        $('.' + err).show();
+        $(emailObj).addClass('error');
+        return false;
+    }
+
+
     // Якщо все окей, знімаємо блокування кнопки відправки форми
     $('.testEmailButton').prop('disabled', true);
     $('.testEmailButton').addClass('disbtn');
-
+    $(emailObj).val(email);
     return email;
 
 }
@@ -146,14 +122,17 @@ function testEmail(emailObj) {
 
 
 // Тихо видаляє з поля з email УСІ пробіли та знак плюс "+" на початку мила
-function deleteSpaсeAndPlus(from) {
-    if (from) {
-        from = from.replace(/\s+/g, '');
-        if (from[0] == '+') {
-            from = from.substr(1);
+// та приводимо до нижнього регістру
+function initialPreparation(email) {
+    if (email) {
+        // Видаляємо пробіли на початку і в кінці рядка та всі пробіли всередині рядка 
+        email = email.trim().replace(/\s+/g, '').toLowerCase();
+        // видаляємо плюс на початку
+        if (email[0] == '+') {
+            email = email.substr(1);
         }
-    } 
-        return from
+    }
+    return email
 }
 
 // если плюс в середине мыла: Тихо удаляет знак плюс "+" и всё что после него до собачки
@@ -170,8 +149,6 @@ function clearPlus(email) {
 // Валидация поля ЭМАИЛ
 function isEmailValid(email) {
 
-    if (email == '') { return false; }
-
     // Находим последнюю точку в указанном клиентом мыльнике
     let last_point = email.lastIndexOf('.');
     // Находим последнюю собачку в указанном клиентом мыльнике
@@ -183,10 +160,10 @@ function isEmailValid(email) {
     // Берём доменное имя мыльника example.comm
     let r_email = email.substr(+last_sobaka + 1);
 
-    // Проверяем на цифры в доменном имени
-    // Решили что мы не будем принимать заявку если в домене мыла клиента есть хоть одна цифра,
-    // так как процент реальных заявок с цифрами в домене близок к нолю
-    // а вот опечаток вроде vova@1999mail.ru огромное множество
+    // Перевіряємо на цифри у доменному імені
+    // Вирішили що ми не прийматимемо заявку якщо в домені мила клієнта є хоч одна цифра,
+    // так як відсоток реальних заявок із цифрами в домені близький до нуля
+    // а ось друкарська помилка на зразок vova@1999mail.ru безліч
     if (r_email.indexOf('0') >= 0) {
         return false;
     }
@@ -340,7 +317,7 @@ function isEmailValid(email) {
     if (ext.length > 4 || /\d/.test(ext)) {
         return false
     }
-    return true; 
+    return true;
 }
 
 // Якщо Ваші листи не можливо доставити на якісь домени, або ви НЕ хочете доставляти на них
@@ -371,71 +348,59 @@ function isEmailNotOn(email) {
 
 
 
-// 
-function isEmailValidByFnone(email) {
-    // Только яндекс TODO: Яндекс ящики начинающиеся с номеров телефонов
+// Якось один клієнт не хотів допускати вказаня email які починаються з номерів телефонів в яндексі
+// Бо вони є синонімами основних ящиків
+// Здається це вже дуже не актуально
+function phoneInEmail(email) {
+    // Отримуємо частини email
+    const lastPoint = email.lastIndexOf('.');
+    const lastAt = email.lastIndexOf('@');
+    const domainZone = email.slice(lastPoint);
+    const localPart = email.slice(0, lastAt);
+    const domainPart = email.slice(lastAt + 1);
 
-    let last_point = email.lastIndexOf('.');
-    let last_sobaka = email.lastIndexOf('@');
-    let domain_zone = email.substr(last_point);
-    let l_email = email.substr(0, last_sobaka);
-    let r_email = email.substr(+last_sobaka + 1);
-
-
-    if (r_email.indexOf('yandex') || r_email.indexOf('ya.ru')) {
-
-        // Валидация email если содержит телефон
-        // Фишка не страшная и прям уже контролировать всеобъмлюще ли она валидирует - не обязательно
-        // С текущей скорость разработки - текущей валидации хватит до 2028 года
-        if (
-            // Украина
-            /^380/.test(l_email) ||
-            // Белоруссия, Молдова, Латвия, Армения
-            /^37/.test(l_email) ||
-            // Грузия, Киргизия, Таджикистан, Узбекистан
-            /^99/.test(l_email) ||
-            // РФ
-            /^79/.test(l_email) ||
-            /^89/.test(l_email) ||
-            //
-            /^371/.test(l_email) ||
-            // Казахстан
-            /^77/.test(l_email)
-        ) {
-            // Проверяем не состоит ли мыло до собачки только из цифр
-            if (/[0-9]{11,13}/.test(l_email)) {
-                return false;
-            }
+    // Перевіряємо, чи містить домен "yandex" або "ya.ru"
+    if (domainPart.includes('yandex') || domainPart.includes('ya.ru')) {
+        // Перевіряємо відповідність телефонним кодам країн
+        const phoneCodes = [
+            /^380/, // Україна
+            /^37/,  // Білорусь, Молдова, Латвія, Вірменія
+            /^99/,  // Грузія, Киргизстан, Таджикистан, Узбекистан
+            /^79/,  // РФ
+            /^89/,  // РФ
+            /^371/, // Латвія
+            /^77/   // Казахстан
+        ];
+        // Якщо локальна частина починається з телефонного коду і містить тільки цифри
+        if (phoneCodes.some(code => code.test(localPart)) && /^\d{11,13}$/.test(localPart)) {
+            return false;
         }
-
     }
-
     return true;
-
 }
 
-// Не даём клиенту указывать откровенно лживые мыльники
+
+// Не даємо клієнту вказувати відверто брехливі email
 function isEmailValidyou(email) {
-    // Если клиент на сайте example.com подаёт заявку, то все ящики с домена @example.com нельзя использовать в качестве ящика.
+    // Якщо клієнт на сайті example.com подає заявку
+    // то всі скриньки з домену @example.com не можна використовувати як скриньку
     let doman_email = email.split('@');
     if (doman_email[1] == window.location.host || 'www.' + doman_email[1] == window.location.host) {
         return false
-        // Вместе с отклонением мыла мы запоминаем факт попытки указания клиентом лживой информации и передаём эту информация на сервер вместе с заявкой
-        // в разработке
     }
     let email_not_you = [
-        // Откровенные неверные и/или лживые ящики
-        // Достоверно извесно - таких не существует у клиентов
-        // Сюди можна також внести нприклад наші email
+        // Відверті невірні та/або брехливі ящики
+        // Достовірно відомо - таких немає у клієнтів
+        // Сюди можна також внести наприклад наші email або якісь конкретні
         'mail@mail.ru', 'gmail@gmail.com', 'email@mail.ua'
     ];
     for (let cx = 0; cx < email_not_you.length; cx++) {
         if (email_not_you[cx] == email) {
+            // Разом з відхиленням email ми можемо
+            // запам'ятовувати факт спроби вказівки клієнтом брехливої ​​інформації
+            // та передати цю інформацію на сервер разом із заявкою
+            // Я не розробляв, але десь це може знадобитись
             return false;
-            // Вместе с отклонением мыла мы можем
-            // запоминать факт попытки указания клиентом лживой информации 
-            // и передаём эту информация на сервер вместе с заявкой
-            // в розробці
         }
     }
     return true;
@@ -554,4 +519,33 @@ function testZone(email) {
 function validateEmail(email) {
     let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
+}
+
+
+function buildStandartEmail(email) {
+    // Видаляємо пробіли на початку і в кінці рядка та всі пробіли всередині рядка та приводимо до нижнього регістру
+    email = email.trim().replace(/\s+/g, '').toLowerCase();
+
+    // За замовчуванням так і запишемо якщо нічого не змінимо
+    let StandartEmail = email;
+
+    // Конвертуємо всі можливі варіації Яндекс ящиків в еталонний формат mail.mail@yandex.ru
+    if (/@(?:yandex\.[a-z]{2,3}|ya\.ru|narod\.ru)$/i.test(email)) {
+        const [box, domain] = email.split('@');
+        StandartEmail = box.replace(/-/g, '.') + '@yandex.ru';
+    }
+
+    // Конвертуємо всі можливі варіації ГУГЛ ящиків на еталонний формат mailmail@gmail.com
+    if (/@(gmail\.com|googlemail\.com)$/i.test(email)) {
+        const [box, domain] = email.split('@');
+        StandartEmail = box.replace(/\./g, '') + '@gmail.com';
+    }
+
+    // Конвертуємо всі можливі варіації ProtonMail ящиків на еталонний формат box@proton.me
+    if (/@(pm\.me|proton\.me)$/i.test(email)) {
+        const [box, domain] = email.split('@');
+        StandartEmail = box + '@proton.me';
+    }
+
+    return StandartEmail;
 }
