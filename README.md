@@ -29,7 +29,6 @@ myemail@gmail.com
 
 # Instructions for installation and use
 Чіпляємо цей js на сторінку між jquery та вашою бібліотекою що валідує форму та виводить повідомлення про помилки.  
-Цільове поле має містити класс .email  
 У випадку виявленя критичної помилки, полю автоматично додається класс .error та блокується (disabled) кнопка з классом .testEmailButton  
 
 
@@ -44,7 +43,7 @@ let email = testEmail(emailObj);
 let stoplist = isEmailNotOn(email);
 if (stoplist != false) {
     $(emailObj).addClass('error');
-    // Повідомляємо клиента, що це мило нам не підходить
+    // Повідомляємо юзера, що це мило нам не підходить
     // Наприклад так
     $('.ernena').text("Тільки не на "+stoplist);
 }
