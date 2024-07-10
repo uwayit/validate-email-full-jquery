@@ -3,7 +3,9 @@
 // Чіпляємо цей js на сторінку між jquery та вашою бібліотекою що валідує форму та виводить повідомлення про помилки
 // Викликаємо функцію перевірки testEmail();
 // Функція вже вміє видавати, та приховувати типові помилки
-// Якщо вони додані на сторінку
+// Якщо відповідні блоки додані на сторінку
+// Щоб юзер міг бачити суть проблеми
+// Вони мають містити .errormail та класс з ім'ям що пушиться в err.push('...')
 
 // Ховаемо всі повідомлення про помилки в email
 $('.email').bind('change keypress keydown keyup', function () {
@@ -60,7 +62,6 @@ function testEmail(emailObj) {
     // Не даємо клієнту вказувати відверто брехливі email
     let nonoe = isEmailValidyou(email);
     if (nonoe == false) {
-        let err = 'nonoe';
         err.push('nonoe');
         $('.' + err).show();
         $(emailObj).addClass('error');
@@ -72,7 +73,6 @@ function testEmail(emailObj) {
     // ну принаймні вона пускає тіко латинські домени
     let grubo = validateEmail(email);
     if (!grubo) {
-        let err = 'validateEmail';
         err.push('validateEmail');
         $('.' + err).show();
         $(emailObj).addClass('error');
