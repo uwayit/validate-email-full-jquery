@@ -1,54 +1,24 @@
-# validate email full js jquery
+# validate email full jquery
 
-Цей набір функцій дозволяє значно зменшити кількість невірно введених емаіл, особливо на проектах де підвищена кількість слабо підкованих в цих ваших інтернетах юзерів.  
+This set of functions allows you to significantly reduce the number of incorrectly entered emails, especially on projects where there is an increased number of users who are not well versed in the Internet.
 
-В своїх проектах націлених на дуже широку аудиторію, в яких я змушений вимагати email, часто стикався з тим, що десь до 20% юзерів вводять його з помилками, а отже я відправляю листа в нікуди і сподіваюсь не треба пояснювати чому це погано в багатьох сенсах.  
-
-Тож постала задача зробити найкращу в світі валідацію email на стороні клієнта, без залучення стороніх ресурсів. Кілька років я ретельно вносив у цей набір функцій всі помилки яких припускалися тисячи юзерів, щоб недопустити  повторення цих помилок.  
-
-Завдяки досвіду отриманому за кілька років в реальних проектах, деякі типові найрозповсюджені мікро помилки виправляються мовчки і автоматично не відволікаючи юзера, після чого функція віддає виправлений варіант і приймає його як валідний.  
+Some of the most common micro errors are corrected silently and automatically without distracting the user, thanks to the experience gained over several years in real projects, after which the function returns the corrected version and accepts it as valid.
 gmeil.com  
 qmail.com  
 gmail.con  
 mail.ya  
 ykr.met  
-і тисячі інших комбінацій виправляються на коректні.  
+yandx.ry
+and thousands of other combinations are corrected to be correct.  
 
-Наприклад  
-" mamaemail@gmeil.co"  
-Автоматично мовчки виправиться на  
-"mamaemail@gmail.com"  
-
-Водночас, навіть в проектах, де email не є унікальним ідентифікатором, здається важливим недопускати множинні реєстрації з одного і того ж email.  
-Задля цього, ми видаляємо з email всі уловки що можуть дозволити юзерам використовувати його багато разів.  
-Тобто  
-My.Email+work@googlemail.com  
-Ми очищуємо до його кореневого стану  
+At the same time, it seems important to prevent multiple registrations from the same email.  
+For this purpose, we remove from email all tricks that can allow users to use it many times.  
+**Тобто**    
+my.Email+wOrk@googlemail.COM  
+**We clean to its root**  
 myemail@gmail.com  
 
+Детальна інструкція [українською](./README.ua.md)  
+Detailed instructions in [english](./README.en.md)  
 
-# Instructions for installation and use
-Чіпляємо цей js на сторінку між jquery та вашою бібліотекою що валідує форму та виводить повідомлення про помилки.  
-Цільове поле має містити класс .email
-У випадку виявленя критичної помилки, полю автоматично додається класс .error та блокується (disabled) кнопка з классом .testEmailButton  
-
-
-**Example of use**
-```js
-// Base
-let emailObj = $('.email');
-let email = testEmail(emailObj);
-
-// Якщо Ваші листи не можливо доставити на якісь домени, або ви НЕ хочете доставляти на них
-// можна додатково недопускати вказання юзерами цих email
-let stoplist = isEmailNotOn(email);
-if (stoplist != false) {
-    $(emailObj).addClass('error');
-    // Повідомляємо юзера, що це мило нам не підходить
-    // Наприклад так
-    $('.ernena').text("Тільки не на "+stoplist);
-}
-
-```
-
-**P.S.:** Набір функцій відтестований і коректно виконує свою роботу недопускаючи жодних прикрих помилок! Тож його вже можна використовувати як є - без хвилювань. Однак, викладаючи зараз код, що писався мною 4 роки тому, на початку мого js шляху, я бачу його неоптимальність і вірогідно, через сором перед спільнотою, найближчим часом перепишу його повністю і тоді зарелізю, але поки викладаю як є, бо воно давно готове потужно приносити користь.  
+**P.S.: The script code is well commented, but only in Ukrainian!**  
