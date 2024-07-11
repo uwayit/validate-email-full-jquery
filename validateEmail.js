@@ -128,8 +128,7 @@ function testEmail(emailObj) {
     // Перевіряємо синтаксис імені
     let newte = isEmailValid(email);
     if (newte == false) {
-        $('.' + err).show();
-        $(emailObj).addClass('error');
+        sendError(emailObj, 'newte');
         return false;
     }
 
@@ -137,8 +136,7 @@ function testEmail(emailObj) {
     // Здебільшого це захист від помилкового введення того що після собачки
     let newtestZone = testZone(email);
     if (newtestZone == false) {
-        $('.' + err).show();
-        $(emailObj).addClass('error');
+        sendError(emailObj, 'newtestZone');
         return false;
     }
 
@@ -166,8 +164,8 @@ function testEmail(emailObj) {
 
     // Якщо ви не хочете приймати заявкі 
     // з mail.ru чи proton.me тому що маєте упередження
-    // чи ваші листи кудить туди не доходять
-    // Ви можете додати ці домени сюди
+    // чи ваші листи кудить не доходять
+    // Ви можете додати домени в перелік в neNa()
     neNaTest = neNa(epart.domainAll);
     if (neNaTest) {
         sendError(emailObj, 'Not on ' + neNaTest);
