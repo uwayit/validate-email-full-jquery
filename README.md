@@ -13,7 +13,7 @@ and thousands of other combinations are corrected to be correct.
 
 At the same time, it seems important to prevent multiple registrations from the same email.  
 For this purpose, we remove from email all tricks that can allow users to use it many times.  
-**Тобто:**    
+**That is:**    
 my.Email+wOrk@googlemail.COM  
 **We clean to its root**  
 myemail@gmail.com  

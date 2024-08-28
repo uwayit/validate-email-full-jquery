@@ -1,24 +1,21 @@
 // Скрипт може проводити валидацію email та показувати СТАНДАРТИЗОВАНІ помилки
-// Чіпляємо цей js на сторінку між jquery та вашою бібліотекою що валідує форму та виводить повідомлення про помилки
-// Викликаємо функцію перевірки testEmail();
-// Функція вже вміє видавати, та приховувати типові помилки
-// Якщо відповідні блоки додані на сторінку
-// Щоб юзер міг бачити суть проблеми
-// Вони мають містити .errormail та класс з ім'ям що в sendError();
-// https://github.com/uwayit/validate-email-full-jquery
+// Делатльна інструкція та можливості https://github.com/uwayit/validate-email-full-jquery
 
+
+// Коли починається взаємодія з полем
 // Ховаемо всі повідомлення про помилки в email
 $('.email').bind('change keypress keydown keyup', function () {
     $(this).removeClass('error');
     $('.errormail').hide();
-    // Знімаємо блокування кнопки
+    // Знімаємо блокування кнопки відправки форми (якщо потрібно)
+    // Для цього кнопка має містити .testEmailButton
     $('.testEmailButton').prop('disabled', false);
     $('.testEmailButton').removeClass('disbtn');
 });
 
 // Запускаємо перевірку поля з email
 function testEmail(emailObj) {
-    // Блокуємо кнопку на період аналізу
+    // Блокуємо кнопку на період аналізу відправки форми (дуже бажано)
     // Блокування кнопки знімається автоматично якщо все окей і НЕ знімається якщо є помилка
     $('.testEmailButton').prop('disabled', true);
     $('.testEmailButton').addClass('disbtn');
@@ -63,34 +60,41 @@ function testEmail(emailObj) {
     epart['lastPoint'] = email.lastIndexOf('.');
     // Якщо собачка є, то тут буде кількість символів до собачки
     epart['lastAt'] = email.lastIndexOf('@'); 
-    epart['domainZone'] = email.slice(epart['lastPoint'] + 1);  // com
+    epart['domainZone'] = correctDomainZone(email.slice(epart['lastPoint'] + 1)); // com
     epart['localPart'] = email.slice(0, epart['lastAt']);   // все до собачки
     epart['domainAll'] = email.slice(epart['lastAt'] + 1); // gmail.com
     epart['domainOnly'] = email.slice(epart['lastAt'] + 1, epart['lastPoint']); // gmail
 
-    // Оголошуємо всі перевірки
-    let numberT = false
-    let isLieT = false
-    let grubo = false
-    let stopAnonimayzerT = false
-    let yaphoneTest = false
-    let tireStopTest = false
-    let neNaTest = false
-
-    // Будь який рядок з непотрібною функціїю НИЖЧЕ можна закоментувати, наприклад
-    // numberTest = numberTest(epart['domainAll'], emailObj);
+    // Оголошуємо перевірки
+    // Для чого оголошуємо? Для зручності подальшого налаштування
+    // Звдяки цьому, будь який рядок з непотрібною функцією НИЖЧЕ можна закоментувати, наприклад
+    // numberTestTest = numberTest(epart['domainAll'], emailObj);
     // і тоді дія/заміна/перевірка яку виконує функція - просто пропускатиметься
+    let numberTestTest = false       // numberTest
+    let isLieT = false               // 
+    let grubo = false                // 
+    let stopAnonimayzerTest = false  // 
+    let yaphoneTest = false          // 
+    let tireStopTest = false         // 
+    let neNaTest = false             // 
+    let stopDomainALLTest = false    // 
+    let oneLetterTest = false        // 
+    let domainZoneLenghtTest = false // 
+    let sintaksisValidTest = false   // 
+    let badZoneTest = false          // 
+
 
     // Перевіряємо на цифри у доменному імені
-    // Вирішили що ми не прийматимемо заявку якщо в домені мила клієнта є хоч одна цифра,
+    // Вирішив, що немає сенсу приймати заявку якщо в домені мила клієнта є хоч одна цифра,
     // так як відсоток реальних заявок із цифрами в домені близький до нуля
-    // а ось друкарських помилок на зразок vova@1999mail.ru безліч. Як їм це вдається - я не знаю
-    // Тому тут навіть видалення цифр не допоможе, бо email точно буде некоректним,
+    // а ось друкарських помилок на зразок vova@1999gmail.com - безліч
+    // Тому тут навіть видалення цифр не допоможе виправити ситуацію, бо email точно буде некоректним
     // а отже просимо користувача виправити помилку
-    numberT = numberTest(epart.domainAll);
-    if (numberT) {
+    numberTestTest = numberTest(epart.domainAll);
+    if (numberTestTest) {
         // Виводимо помилку numberTest
-        sendError(emailObj, 'numberTest');
+        // Повідомляємо йому про те, що цифри в домені недопускаються
+        sendError(emailObj, 'numberTestTest');
         // Перериваємо подальшу обробку
         return false;
     }
@@ -114,11 +118,13 @@ function testEmail(emailObj) {
 
 
     // Якщо юзер використовує анонімайзер, тобто тимчасову, однохвилину пошту
-    stopAnonimayzerT = stopAnonimayzer(epart.domainAll);
-    if (stopAnonimayzerT) {
-        // Якщо це взагалі нахабство, то можна брати його IP чи fingerprint та відправляти в стоп ліст
+    stopAnonimayzerTest = stopAnonimayzer(epart.domainAll);
+    if (stopAnonimayzerTest) {
+        // Якщо факт використання анонімайзеру - це нахабство:
+        // то можна брати його IP чи fingerprint та відправляти в стоп ліст
         // щоб забанити і ускладнити йому можливість подати заявку
-        // Я цього не робив і просто повідомляю юзеру про те, що тимчасові пошти використовувати заборонено
+        // По замовчуванню ми цього не робимо
+        // просто повідомляю юзеру про те, що тимчасові пошти використовувати заборонено
         sendError(emailObj, 'stopAnonimayzerTest');
         return false;
     }
@@ -126,20 +132,43 @@ function testEmail(emailObj) {
 
 
     // Перевіряємо синтаксис імені
-    let newte = isEmailValid(email);
-    if (newte == false) {
-        sendError(emailObj, 'newte');
+    sintaksisValidTest = sintaksisValid(epart);
+    if (sintaksisValidTest) {
+        sendError(emailObj, 'sintaksisValidTest');
         return false;
     }
 
+    // Якщо домена зона складається більше ніж з 4 букв, то це помилка
+
+    domainZoneLenghtTest = domainZoneLenght(epart.domainZone);
+    if (domainZoneLenghtTest) {
+        sendError(emailObj, 'domainZoneLenght');
+            return false;
+    }
+    
     // Не даємо клієнту вказувати ящики на перелічених нижче доменах та доменних зонах
     // Здебільшого це захист від помилкового введення того що після собачки
-    let newtestZone = testZone(email);
-    if (newtestZone == false) {
-        sendError(emailObj, 'newtestZone');
+    stopDomainALLTest = stopDomainALL(email);
+    if (stopDomainALLTest) {
+        sendError(emailObj, 'stopDomainALLTest');
         return false;
     }
 
+    // Поштові домени в світі (хіба за виключенням i.ua та a.ua)
+    // Не можуть бути з одної букви
+    oneLetterTest = oneLetter(epart.domainAll);
+    if (oneLetterTest) {
+        sendError(emailObj, 'oneLetterTest');
+        return false;
+    }
+
+
+    // Якщо домена зона - є в цьому переліку, то повертаємо помилку
+    badZoneTest = badZone(epart.domainZone);
+    if (badZoneTest) {
+        sendError(emailObj, 'badZoneTest');
+        return false;
+    }
 
 
     // Приводимо всі синоніми до кореневого вигляду
@@ -183,6 +212,7 @@ function testEmail(emailObj) {
 
 
 // Пушимо користувачу повідомлення про помилку
+// Другим параметром (ідентифікатором помилки) може бути лише одне слово латиницею або word_word
 function sendError(emailObj, error) {
     console.log(error);
     $('.' + error).show();
@@ -215,10 +245,48 @@ function clearPlus(email) {
     return email;
 }
 
+
 // Перевіряємо на наявність цифри в домені
 function numberTest(domainAll) {
     return /\d/.test(domainAll);
 }
+
+// Не даємо клієнту вказувати відверто брехливі email
+function isLie(email) {
+    // Якщо клієнт на сайті example.com подає заявку
+    // то всі скриньки з домену @example.com не можна використовувати як скриньку
+    let doman_email = email.split('@');
+    if (doman_email[1] == window.location.host || 'www.' + doman_email[1] == window.location.host) {
+        return true
+    }
+    let email_not_you = [
+        // Відверті невірні та/або брехливі ящики
+        // Достовірно відомо - таких немає у клієнтів
+        // Сюди можна також внести наприклад наші email або якісь конкретні
+        'mail@mail.ru', 'gmail@gmail.com', 'email@mail.ua', 'email@example.com'
+    ];
+    for (let cx = 0; cx < email_not_you.length; cx++) {
+        if (email_not_you[cx] == email) {
+            // Разом з відхиленням email ми можемо
+            // запам'ятовувати факт спроби вказівки клієнтом брехливої ​​інформації
+            // та передати цю інформацію на сервер разом із заявкою
+            // Я не розробляв, але десь це може знадобитись
+            return true;
+        }
+    }
+    // Якщо з emil все ок
+    return false;
+}
+
+
+// Валідація регулярним виразом
+function validateEmail(email) {
+    let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+}
+
+
+
 
 // cannot contain an underdash "_" in the address
 function tireStop(domainOnly, localPart) {
@@ -270,39 +338,7 @@ function yaPhone(epart) {
 }
 
 
-// Не даємо клієнту вказувати відверто брехливі email
-function isLie(email) {
-    // Якщо клієнт на сайті example.com подає заявку
-    // то всі скриньки з домену @example.com не можна використовувати як скриньку
-    let doman_email = email.split('@');
-    if (doman_email[1] == window.location.host || 'www.' + doman_email[1] == window.location.host) {
-        return true
-    }
-    let email_not_you = [
-        // Відверті невірні та/або брехливі ящики
-        // Достовірно відомо - таких немає у клієнтів
-        // Сюди можна також внести наприклад наші email або якісь конкретні
-        'mail@mail.ru', 'gmail@gmail.com', 'email@mail.ua', 'email@example.com'
-    ];
-    for (let cx = 0; cx < email_not_you.length; cx++) {
-        if (email_not_you[cx] == email) {
-            // Разом з відхиленням email ми можемо
-            // запам'ятовувати факт спроби вказівки клієнтом брехливої ​​інформації
-            // та передати цю інформацію на сервер разом із заявкою
-            // Я не розробляв, але десь це може знадобитись
-            return true;
-        }
-    }
-    // Якщо з emil все ок
-    return false;
-}
 
-
-// Валідація регулярним виразом
-function validateEmail(email) {
-    let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(email);
-}
 
 // Намагаємось привести email до його кореневого стерильного стану
 function buildStandartEmail(email) {
@@ -340,27 +376,58 @@ function buildStandartEmail(email) {
 }
 
 
-// Якщо юзер використовує анонімайзер, тобто тимчасову, однохвилину пошту
+// Виявляємо чи використовує юзер анонімайзер, тобто тимчасову, однохвилину пошту
 function stopAnonimayzer(domainAll) {
+    let anonimayzer = [
+        // УВАГА!!! Всі домени та зони нижче потрібно вводити в нижньому регістрі
+        // Перелічимо які хочемо анонімайзери через кому
+        'scryptmail.com'
+    ]
+    for (let cx = 0; cx < anonimayzer.length; cx++) {
+        if (anonimayzer[cx] == domainAll) {
+            return true; // Помилка
+        }
+    }
     return false;
 }
 
+// Виправляємо помилкову зону на коректну
+function correctDomainZone(domainZone) {
+    const corrections = {
+        // Всі ці помилки засновані на реальному досвіді
+        'ru': ['ry', 'rv', 'ri', 'rn', 'tu', 'ty', 'my'],
+        'com': ['cjm', 'cpm', 'kom', 'gom', 'vom', 'con', 'kon', 'cm', 'om', 'cim', 'som', 'xom', 'cox'],
+        'org': ['orq', 'opq', 'opg'],
+        'ua': ['ya'],
+        'net': ['ner', 'het', 'bet', 'nen', 'nit', 'met', 'ney', 'ne', 'nwt']
+    };
 
-// Не даём клиенту указывать ящики на перечисленных ниже доменах и доменных зонах
-function testZone(email) {
+    for (let correctZone in corrections) {
+        if (corrections[correctZone].includes(domainZone)) {
+            return correctZone;
+        }
+    }
+
+    return domainZone; // Повертає початкову зону, якщо вона не знайдена серед помилкових
+}
+
+
+// Не даємо клієнту вказувати email на перелічених нижче доменах та зонах
+function stopDomainALL(email) {
     let email_not_valid = [
-        // ВНИМАНИЕ!!! Все ящики здесь нужно вводить в нижнем регистре.
-        // Популярные в Украине анонимайзеры почты
-        '@scryptmail.com',
+        // УВАГА!!! Всі домени та зони нижче потрібно вводити в нижньому регістрі
         // ошибочные или абсолютно левые домены. Это как правило опечатки или попытки указать хоть что-то "дабы пропустило" из-за неимения личного мыла
         '@com.ua', '@ua.com', '@kom.ua', '@kis.ru', '@kom.ru', '@com.ru', '@ru.com', '@meil.com', '@mael.com', '@emeil.ru', '@emeil.com', '@imeil.ua', '@com.com',
         '@net.ua', '@net.ru', '@com.net', '@example.com', '@sitemail.com', '@site.com', '@email.com', '@mailcom.ru',
+
+
         // Разные мелкачи типа yahoo rambler hotmail яблоки icloud и т.п.  и связанные с ними опечатки
         '@yahoo.net', '@hotmail.ru', '@ramler.ru', '@ramdler.ru', '@rambler.com', '@yaho.com',
         // Айфоны
         '@icloud.ru', '@cloud.com', '@cloud.ru', '@ikloud.com', '@ikloud.ru', '@iclout.com', '@iclou.com', '@icloub.com', '@cloub.com',
         // Популярные украинские почтовики
         '@ua.net', '@ykr.net', '@ykt.net', '@ukt.net', '@ucr.net', '@ukr.com',
+        
         '@digmir.net', '@biqmir.net', '@diqmir.net', '@bigmir.ua', '@bigmir.com',
 
         // Осторожней с этим GMAIL
@@ -404,16 +471,11 @@ function testZone(email) {
     let from = email.search('@');
     let to = email.length;
     let new_email = email.substring(from, to);
-    let domain_not_valid = [
-        // достоверно ошибочные зоны. Самые распространённые опечатки позволяющие значительно уменьшить ассортимент вариаций выше
-        // Пиздец, да? Это же (И ВСЕ ВАРИАНТЫ ВЫШЕ В ДОМЕНАХ) не из воздуха придуманы, а так сказать основаны на реальных событиях... Выдают же люди перлы...
-        '.ry', '.rv', '.ri', '.rn', '.tu', '.ty', '.my',
-        '.cjm', '.cpm', '.kom', '.gom', '.vom', '.con', '.kon', '.cm', '.om', '.cim', '.som', '.xom', '.cox',
 
-        '.orq', '.opq', '.opg',
-        '.ya',
-        '.us', // Знаю что домен американский, но у меня американских клиентов нет, а вот Украинцы с большими, толстыми пальцами промахиваются....
-        '.ner', '.het', '.bet', '.nen', '.nit', '.met', '.ney', '.ne', '.nwt'];
+    let domain_not_valid = [
+        // Зони які точно не вірні і які неможливо розібрати
+        '.yy', '.aa'
+    ];
 
     let domain_name_not_valid = [
         // достоверно ошибочные домены. Самые распространённые опечатки позволяющие значительно уменьшить ассортимент вариаций выше
@@ -429,149 +491,148 @@ function testZone(email) {
 
     for (let cx = 0; cx < email_not_valid.length; cx++) {
         if (email_not_valid[cx] == new_email) {
-            return false;
+            return true; // Помилка
         }
     }
     for (let cx = 0; cx < domain_not_valid.length; cx++) {
         from = to - domain_not_valid[cx].length;
         let email_domain = email.substring(from, to);
         if (email_domain == domain_not_valid[cx]) {
-            return false;
+            return true; // Помилка
         }
     }
 
     for (let cx = 0; cx < domain_name_not_valid.length; cx++) {
         if (email.indexOf(domain_name_not_valid[cx]) !== -1) {
-            return false;
+            return true; // Помилка
         }
     }
-    return true;
+    return false;
+}
+
+// доменное имя не может быть из одной буквы, за исключением I.UA и A.UA, 
+// другие же любые международные сервисы которые мыслимыми способами могут использоваться(типа x.com) это ошибка
+function oneLetter(domainAll) {
+    if (domainAll != undefined) {
+        if (domainAll.indexOf('i.ua') == -1 && domainAll.indexOf('a.ua') == -1) {
+            let split_email = domainAll.split('.');
+            if (split_email[0].length == 1)
+                return true;
+        }
+    }
+    return false
 }
 
 
-function isEmailValid(email) {
+// Якщо домена зона складається більше ніж з 4 букв, то це помилка
+function domainZoneLenght(domainZone) {
+    if (domainZone.length > 4) {
+        return true;
+    }
+    return false
+}
 
-    // Находим последнюю точку в указанном клиентом мыльнике
-    let last_point = email.lastIndexOf('.');
-    // Находим последнюю собачку в указанном клиентом мыльнике
-    let last_sobaka = email.lastIndexOf('@');
-    // Берём доменную зону мыльника клиента в формате .com
-    let domain_zone = email.substr(last_point);
-    // Берём кусок мыла клиента от начала и до последней имеющейся в нём собачки
-    let l_email = email.substr(0, last_sobaka);
-    // Берём доменное имя мыльника example.comm
-    let r_email = email.substr(+last_sobaka + 1);
+// Якщо домена зона - є в цьому переліку, то повертаємо помилку
+function badZone(domainZone) {
+    if (domainZone == '.xxx' || domainZone == '.biz' || domainZone == '.cc') {
+        return true;
+    }
+    return false
+}
 
 
-    // Интелектуальные правила составленные на основе нюансов формирования мыла у некоторых почтовиков. Позволяют уменьшить количество явных опечаток и адресов введённых на дурака
-    // Минимальная длина маила для некторых почтовых ящиков
-    if (r_email.indexOf('i.ua') != -1 && l_email.length < 6)
-        return false;
-    if (r_email.indexOf('ro.ru') != -1 && l_email.length < 6)
-        return false;
-    if (r_email.indexOf('r0.ru') != -1 && l_email.length < 6)
-        return false;
-    if (r_email.indexOf('rambler.ru') != -1 && l_email.length < 6)
-        return false;
-    if (r_email.indexOf('lenta.ru') != -1 && l_email.length < 6)
-        return false;
-    if (r_email.indexOf('myrambler.ru') != -1 && l_email.length < 6)
-        return false;
-    // У гугла минималка сейчас 6 (но неизвестно как было раньше) без точек и тире
-    if (r_email.indexOf('gmail.com') != -1 && l_email.length < 5)
-        return false;
-    if (r_email.indexOf('mail.ru') != -1 && l_email.length < 3)
-        return false;
-    if (r_email.indexOf('mail.ua') != -1 && l_email.length < 3)
-        return false;
-    if (r_email.indexOf('inbox.ru') != -1 && l_email.length < 3)
-        return false;
-    if (r_email.indexOf('list.ru') != -1 && l_email.length < 3)
-        return false;
-    if (r_email.indexOf('bk.ru') != -1 && l_email.length < 3)
-        return false;
+// Інші перевірки всі на купу поки що
+function sintaksisValid(epart) {
 
-    // Перечень почтовиков которые ТОЧНО не допускают два "символа" в адресе идующих друг за другом
+    // Інтелектуальні правила складені з урахуванням нюансів формування мила в деяких поштовиків. Дозволяють зменшити кількість явних друкарських помилок та адрес введених на дурня
+    // Мінімальна довжина травня для деяких поштових скриньок
+    if (epart.domainAll.indexOf('i.ua') != -1 && epart.localPart.length < 6)
+        return true;
+    if (epart.domainAll.indexOf('ro.ru') != -1 && epart.localPart.length < 6)
+        return true;
+    if (epart.domainAll.indexOf('r0.ru') != -1 && epart.localPart.length < 6)
+        return true;
+    if (epart.domainAll.indexOf('rambler.ru') != -1 && epart.localPart.length < 6)
+        return true;
+    if (epart.domainAll.indexOf('lenta.ru') != -1 && epart.localPart.length < 6)
+        return true;
+    if (epart.domainAll.indexOf('myrambler.ru') != -1 && epart.localPart.length < 6)
+        return true;
+    // У гугла мінімалка зараз 6 (але невідомо як було раніше) без крапок та тире
+    if (epart.domainAll.indexOf('gmail.com') != -1 && epart.localPart.length < 5)
+        return true;
+    if (epart.domainAll.indexOf('mail.ru') != -1 && epart.localPart.length < 3)
+        return true;
+    if (epart.domainAll.indexOf('mail.ua') != -1 && epart.localPart.length < 3)
+        return true;
+    if (epart.domainAll.indexOf('inbox.ru') != -1 && epart.localPart.length < 3)
+        return true;
+    if (epart.domainAll.indexOf('list.ru') != -1 && epart.localPart.length < 3)
+        return true;
+    if (epart.domainAll.indexOf('bk.ru') != -1 && epart.localPart.length < 3)
+        return true;
+
+    // Перелік поштовиків які ТОЧНО не допускають два "символи" на адресу тих, хто йде один за одним
     if (
         (
-            r_email.indexOf('ya.ru') != -1 ||
-            r_email.indexOf('yandex') != -1 ||
-            r_email.indexOf('mail.ru') != -1 ||
-            r_email.indexOf('bk.ru') != -1 ||
-            r_email.indexOf('mail.ua') != -1 ||
-            r_email.indexOf('inbox.ru') != -1 ||
-            r_email.indexOf('gmail.com') != -1 ||
-            r_email.indexOf('list.ru') != -1
+            epart.domainAll.indexOf('ya.ru') != -1 ||
+            epart.domainAll.indexOf('yandex') != -1 ||
+            epart.domainAll.indexOf('mail.ru') != -1 ||
+            epart.domainAll.indexOf('bk.ru') != -1 ||
+            epart.domainAll.indexOf('mail.ua') != -1 ||
+            epart.domainAll.indexOf('inbox.ru') != -1 ||
+            epart.domainAll.indexOf('gmail.com') != -1 ||
+            epart.domainAll.indexOf('list.ru') != -1
         ) &&
         (
-            l_email.indexOf('..') != -1 ||
-            l_email.indexOf('-.') != -1 ||
-            l_email.indexOf('.-') != -1 ||
-            l_email.indexOf('_.') != -1 ||
-            l_email.indexOf('._') != -1 ||
-            l_email.indexOf('--') != -1 ||
-            l_email.indexOf('-_') != -1 ||
-            l_email.indexOf('_-') != -1 ||
-            l_email.indexOf('__') != -1
+            epart.domainAll.indexOf('..') != -1 ||
+            epart.domainAll.indexOf('-.') != -1 ||
+            epart.domainAll.indexOf('.-') != -1 ||
+            epart.domainAll.indexOf('_.') != -1 ||
+            epart.domainAll.indexOf('._') != -1 ||
+            epart.domainAll.indexOf('--') != -1 ||
+            epart.domainAll.indexOf('-_') != -1 ||
+            epart.domainAll.indexOf('_-') != -1 ||
+            epart.domainAll.indexOf('__') != -1
         )
-    )
-        return false;
+    ) {
+        return true;
+    }
 
 
-    // доменное имя не может быть из одной буквы, за исключением I.UA и A.UA, другие же любые международные сервисы которые мыслимыми способами могут использоваться (типа x.com) это ошибка
-    if (r_email != undefined) {
-        if (r_email.indexOf('i.ua') == -1 && r_email.indexOf('a.ua') == -1) {
-            let split_email = r_email.split('.');
-            if (split_email[0].length == 1)
-                return false;
-        }
+    if (epart.localPart[0] != undefined) {
+        // Мило не може починатися з наступних символів у жодної з поштовиків
+        if (
+            epart.localPart[0].indexOf('.') != -1 ||
+            epart.localPart[0].indexOf('-') != -1 ||
+            epart.localPart[0].indexOf('_') != -1
+        )
+            return true;
+
+        // Мило не може закінчуватися (перед собачкою, та й у принципі до речі) на наступні символи в жодної з поштовиків
+        if (
+            epart.localPart[epart.localPart.length - 1].indexOf('.') != -1 ||
+            epart.localPart[epart.localPart.length - 1].indexOf('-') != -1 ||
+            epart.localPart[epart.localPart.length - 1].indexOf('_') != -1
+        )
+            return true;
     }
 
 
 
-    if (l_email[0] != undefined) {
-        // Мыло не может начинаться со следующие символов ни у одного из почтовиков
-        if (
-            l_email[0].indexOf('.') != -1 ||
-            l_email[0].indexOf('-') != -1 ||
-            l_email[0].indexOf('_') != -1
-        )
-            return false;
-
-        // Мыло не может заканчиваться (перед собачкой, да и в принципе кстати) на следующие символы ни у одного из почтовиков
-        if (
-            l_email[l_email.length - 1].indexOf('.') != -1 ||
-            l_email[l_email.length - 1].indexOf('-') != -1 ||
-            l_email[l_email.length - 1].indexOf('_') != -1
-        )
-            return false;
-    }
 
 
-
-    // Если доменная зона состоит больше чем из 4 букв возвращаем ошибку
-    if (domain_zone.length > 4)
-        return false;
-
-
-
-
-    // Если домен клиента один из ниже перечисленных, то возвращаем ошибку
-    if (domain_zone == '.xxx' || domain_zone == '.biz' || domain_zone == '.cc')
-        return false;
-
-
-
-    // Если домен мыла клиента является доменом 4-го и выше уровней то возвращаем ошибку
-    let email_array = r_email.split('.');
+    // Якщо домен 4-го та вище рівнів - повертаємо помилку
+    let email_array = epart.domainAll.split('.');
     if (email_array.length > 3) {
-        return false;
+        return true;
     }
 
+    // Якщо в доменій зоні є цифри
     let ext = email_array[email_array.length - 1];
-
-    if (ext.length > 4 || /\d/.test(ext)) {
-        return false
+    if (/\d/.test(ext)) {
+        return true
     }
-    return true;
+
+    return false;
 }
