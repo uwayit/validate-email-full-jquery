@@ -82,6 +82,7 @@ function testEmail(emailObj) {
     let domainZoneLenghtTest = false // 
     let sintaksisValidTest = false   // 
     let badZoneTest = false          // 
+    let minLengthTest = false        // 
 
 
     // Перевіряємо на цифри у доменному імені
@@ -138,8 +139,11 @@ function testEmail(emailObj) {
         return false;
     }
 
-    // Якщо домена зона складається більше ніж з 4 букв, то це помилка
+    // Автоматично виправляємо найпоширеніші друкарські помилки в домені
+    epart.domainOnly = correctName(epart.domainOnly);
 
+
+    // Якщо домена зона складається більше ніж з 4 букв, то це помилка
     domainZoneLenghtTest = domainZoneLenght(epart.domainZone);
     if (domainZoneLenghtTest) {
         sendError(emailObj, 'domainZoneLenght');
@@ -163,6 +167,8 @@ function testEmail(emailObj) {
     }
 
 
+
+
     // Якщо домена зона - є в цьому переліку, то повертаємо помилку
     badZoneTest = badZone(epart.domainZone);
     if (badZoneTest) {
@@ -181,6 +187,13 @@ function testEmail(emailObj) {
     // yaphoneTest = yaPhone(email);
     if (yaphoneTest) {
         sendError(emailObj, 'yaphoneTest');
+        return false;
+    }
+
+    // Якщо довжина email до собачки надто коротка
+    minLengthTest = minLength(epart);
+    if (minLengthTest) {
+        sendError(emailObj, 'minLengthTest');
         return false;
     }
 
@@ -411,8 +424,42 @@ function correctDomainZone(domainZone) {
     return domainZone; // Повертає початкову зону, якщо вона не знайдена серед помилкових
 }
 
+// Достовірно помилкові домени що виправляються автоматично на коректні
+// Найпоширеніші друкарські помилки
+// ! ЧЕРЕЗ СПЕЦИФІКИ ПЕРЕВІРКИ ДОМЕНУ (за входженням на початку), сюди не варто включати варіант на кшталт
+// ! 'gmai','gma', -- бо буде робити даремну заміну шила на шило
+function correctName(domainOnly) {
+    const corrections = {
+        'yandex': ['yandax', 'yandeks', 'yandx', 'yangex', 'jandex', 'yadex', 'uandex', 'yndex', 'ayndex'],
+        'bigmir': ['digmir', 'biqmir', 'diqmir'],
+        'mail': [
+            'mfil', 'meil', 'msil', 'maij', 'maill', 'mil', 'imeil', 'mael', 'maii', 'mali', 'mal', 'majl', 'maul',
+            'masl', 'maik', 'ail', 'naul', 'nail'
+        ],
+        'icloud': ['icloud', 'cloud', 'ikloud', 'iclout', 'icloub', 'cloub'],
+        // GMAIL.COM та ім'я йому ЛЕГІОН
+        'gmail': [
+            'gamailcom', 'gmaill', 'gmailco', 'gmel', 'qm', 'gmjl', 'gmm', 'gmaa', 'ggmai', 'cmal', 'cail', 'gail',
+            'gmal', 'gmei', 'gmaij', 'gmajl', 'qnail', 'gnail', 'gmeil', 'gmall', 'jmail', 'gmaii', 'gmali', 'hmail',
+            'gmael', 'jimal', 'jmeil', 'qhail', 'gmoil', 'ghail', 'cmail', 'gamil', 'dmail', 'gmaik', 'gmоil', 'gimajl',
+            'gimail', 'qemail', 'gomail', 'gemeil', 'gemail', 'gamail', 'gameil', 'gmaul', 'qeimal', 'glail', 'gmaile',
+            'goi', 'qoi', 'gmfql', 'gmd'
+        ]
+    };
+
+    for (let correctName in corrections) {
+        if (corrections[correctName].includes(domainOnly)) {
+            return correctName;
+        }
+    }
+
+    return domainOnly;
+}
+
 
 // Не даємо клієнту вказувати email на перелічених нижче доменах та зонах
+// Здебільшого це неймовірно тупі помилки
+// Дєякі помилки можна було б виправляти автоматично, але ми ітак багато помилок виправляємо автоматично і це вже нюанси
 function stopDomainALL(email) {
     let email_not_valid = [
         // УВАГА!!! Всі домени та зони нижче потрібно вводити в нижньому регістрі
@@ -423,23 +470,17 @@ function stopDomainALL(email) {
 
         // Разные мелкачи типа yahoo rambler hotmail яблоки icloud и т.п.  и связанные с ними опечатки
         '@yahoo.net', '@hotmail.ru', '@ramler.ru', '@ramdler.ru', '@rambler.com', '@yaho.com',
-        // Айфоны
-        '@icloud.ru', '@cloud.com', '@cloud.ru', '@ikloud.com', '@ikloud.ru', '@iclout.com', '@iclou.com', '@icloub.com', '@cloub.com',
         // Популярные украинские почтовики
         '@ua.net', '@ykr.net', '@ykt.net', '@ukt.net', '@ucr.net', '@ukr.com',
         
-        '@digmir.net', '@biqmir.net', '@diqmir.net', '@bigmir.ua', '@bigmir.com',
+        '@bigmir.ua', '@bigmir.com',
 
         // Осторожней с этим GMAIL
         '@gmail.ru', '@gmail.ua', '@gmail.com.ua', '@gmail.com.ru',
 
         // YANDEX 
         '@ya.ua', '@ya.com',
-        '@yadex.ru', '@yadex.ua',
-        '@yndex.ru', '@yndex.ua',
-        '@uandex.ru', '@uandex.ua',
         '@yande.ru', '@yande.ua',
-        '@ayndex.ru', '@ayndex.ua',
 
         // MAIL.RU и вся их орда
         '@inboks.ru', '@indox.ru',
@@ -447,25 +488,7 @@ function stopDomainALL(email) {
         '@bk.com', '@bk.ua', '@dk.com', '@br.com', '@dk.ru', '@br.ru', '@bl.ru', '@bj.ru',
         '@vk.ru', '@vk.com', '@vkontakte.ru',
         '@mail.com', '@mail.com.ua', '@mail.com.ru',
-        '@mfil.ru', '@mfil.ua',
-        '@meil.ru', '@meil.ua',
-        '@msil.ru', '@msil.ua',
-        '@maij.ru', '@maij.ua',
-        '@maill.ru', '@maill.ua',
-        '@mil.ru', '@mil.ua',
-        '@imeil.ru', '@imeil.ua',
-        '@mael.ru', '@mael.ua',
-        '@maii.ru', '@maii.ua',
-        '@mai.ru', '@mai.ua',
-        '@mali.ru', '@mali.ua',
-        '@mal.ru', '@mal.ua',
-        '@majl.ru', '@majl.ua',
-        '@maul.ru', '@maul.ua',
-        '@masl.ru', '@masl.ua',
-        '@maik.ru', '@maik.ua',
-        '@ail.ru', '@ail.ua',
-        '@naul.ru', '@naul.ua',
-        '@nail.ru', '@nail.ua'
+
 
     ];
     let from = email.search('@');
@@ -477,16 +500,6 @@ function stopDomainALL(email) {
         '.yy', '.aa'
     ];
 
-    let domain_name_not_valid = [
-        // достоверно ошибочные домены. Самые распространённые опечатки позволяющие значительно уменьшить ассортимент вариаций выше
-        '@cal', '@yandax', '@yandeks', '@yandx', '@yangex', '@jandex',
-        // GMAIL.COM та ім'я йому ЛЕГІОН
-        // ИЗ-ЗА СПЕЦИФИКИ ПРОВЕРКИ ДОМЕНА (по вхождению), сюда нельзя включать вариант вроде
-        // ! '@gmai','@gma', -- бо тоді на gmail.com буде казати, що невірний домен!
-        '@gamailcom', '@gmaill', '@gmailcom', '@gmel', '@qm', '@gmjl', '@gmm', '@gmaa', '@ggmai', '@cmal', '@cail', '@gail', '@gmal', '@gmei',
-        '@gmaij', '@gmajl', '@qnail', '@gnail', '@gmeil', '@gmall', '@jmail', '@gmaii', '@gmali', '@hmail', '@gmael', '@jimal', '@jmeil', '@qhail',
-        '@gmoil', '@ghail', '@cmail', '@gamil', '@dmail', '@gmaik', '@gmоil', '@gimajl', '@gimail', '@qemail', '@gomail', '@gemeil', '@gemail',
-        '@gamail', '@gameil', '@gmaul', '@qeimal', '@glail', '@gmaile', '@goi', '@qoi', '@gmfql', '@gmd'];
 
 
     for (let cx = 0; cx < email_not_valid.length; cx++) {
@@ -502,11 +515,7 @@ function stopDomainALL(email) {
         }
     }
 
-    for (let cx = 0; cx < domain_name_not_valid.length; cx++) {
-        if (email.indexOf(domain_name_not_valid[cx]) !== -1) {
-            return true; // Помилка
-        }
-    }
+
     return false;
 }
 
@@ -541,38 +550,34 @@ function badZone(domainZone) {
 }
 
 
+// Інтелектуальні правила складені з урахуванням нюансів формування мила в деяких поштовиків. 
+// Дозволяють зменшити кількість явних друкарських помилок та адрес введених на дурня
+// Мінімальна довжина для деяких поштових скриньок
+function minLength(epart) {
+    const domainRules = {
+        'i.ua': 6,
+        'ro.ru': 6,
+        'r0.ru': 6,
+        'rambler.ru': 6,
+        'lenta.ru': 6,
+        'myrambler.ru': 6,
+        'gmail.com': 5,
+        'mail.ru': 3,
+        'mail.ua': 3,
+        'inbox.ru': 3,
+        'list.ru': 3,
+        'bk.ru': 3
+    };
+    const minLength = domainRules[epart.domainAll] !== undefined ? domainRules[epart.domainAll] : 3;
+    return epart.localPart.length < minLength;
+}
+
+
+
 // Інші перевірки всі на купу поки що
 function sintaksisValid(epart) {
 
-    // Інтелектуальні правила складені з урахуванням нюансів формування мила в деяких поштовиків. Дозволяють зменшити кількість явних друкарських помилок та адрес введених на дурня
-    // Мінімальна довжина травня для деяких поштових скриньок
-    if (epart.domainAll.indexOf('i.ua') != -1 && epart.localPart.length < 6)
-        return true;
-    if (epart.domainAll.indexOf('ro.ru') != -1 && epart.localPart.length < 6)
-        return true;
-    if (epart.domainAll.indexOf('r0.ru') != -1 && epart.localPart.length < 6)
-        return true;
-    if (epart.domainAll.indexOf('rambler.ru') != -1 && epart.localPart.length < 6)
-        return true;
-    if (epart.domainAll.indexOf('lenta.ru') != -1 && epart.localPart.length < 6)
-        return true;
-    if (epart.domainAll.indexOf('myrambler.ru') != -1 && epart.localPart.length < 6)
-        return true;
-    // У гугла мінімалка зараз 6 (але невідомо як було раніше) без крапок та тире
-    if (epart.domainAll.indexOf('gmail.com') != -1 && epart.localPart.length < 5)
-        return true;
-    if (epart.domainAll.indexOf('mail.ru') != -1 && epart.localPart.length < 3)
-        return true;
-    if (epart.domainAll.indexOf('mail.ua') != -1 && epart.localPart.length < 3)
-        return true;
-    if (epart.domainAll.indexOf('inbox.ru') != -1 && epart.localPart.length < 3)
-        return true;
-    if (epart.domainAll.indexOf('list.ru') != -1 && epart.localPart.length < 3)
-        return true;
-    if (epart.domainAll.indexOf('bk.ru') != -1 && epart.localPart.length < 3)
-        return true;
-
-    // Перелік поштовиків які ТОЧНО не допускають два "символи" на адресу тих, хто йде один за одним
+    // Перелік поштовиків які ТОЧНО не допускають два "символи", що йдуть один за одним
     if (
         (
             epart.domainAll.indexOf('ya.ru') != -1 ||
