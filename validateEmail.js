@@ -248,8 +248,8 @@ function initialPreparation(email) {
     return email
 }
 
-// если плюс в середине мыла: Тихо удаляет знак плюс "+" и всё что после него до собачки
-// Позволяет деперсонализовать ввод email
+// якщо плюс у середині мила: Тихо видаляє знак плюс "+" і все, що після нього до собачки
+// Дозволяє деперсоналізувати введення email
 function clearPlus(email) {
     let pos_plus = email.lastIndexOf('+');
     if (pos_plus > 0) {
