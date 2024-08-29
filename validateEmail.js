@@ -577,32 +577,16 @@ function minLength(epart) {
 // Інші перевірки всі на купу поки що
 function sintaksisValid(epart) {
 
-    // Перелік поштовиків які ТОЧНО не допускають два "символи", що йдуть один за одним
-    if (
-        (
-            epart.domainAll.indexOf('ya.ru') != -1 ||
-            epart.domainAll.indexOf('yandex') != -1 ||
-            epart.domainAll.indexOf('mail.ru') != -1 ||
-            epart.domainAll.indexOf('bk.ru') != -1 ||
-            epart.domainAll.indexOf('mail.ua') != -1 ||
-            epart.domainAll.indexOf('inbox.ru') != -1 ||
-            epart.domainAll.indexOf('gmail.com') != -1 ||
-            epart.domainAll.indexOf('list.ru') != -1
-        ) &&
-        (
-            epart.domainAll.indexOf('..') != -1 ||
-            epart.domainAll.indexOf('-.') != -1 ||
-            epart.domainAll.indexOf('.-') != -1 ||
-            epart.domainAll.indexOf('_.') != -1 ||
-            epart.domainAll.indexOf('._') != -1 ||
-            epart.domainAll.indexOf('--') != -1 ||
-            epart.domainAll.indexOf('-_') != -1 ||
-            epart.domainAll.indexOf('_-') != -1 ||
-            epart.domainAll.indexOf('__') != -1
-        )
-    ) {
-        return true;
-    }
+// Перелік поштовиків які ТОЧНО не допускають два "символи", що йдуть один за одним
+const restrictedDomains = ['ya.ru', 'yandex', 'mail.ru', 'bk.ru', 'mail.ua', 'inbox.ru', 'gmail.com', 'list.ru'];
+const invalidPatterns = ['..', '-.', '.-', '_.', '._', '--', '-_', '_-', '__'];
+
+if (
+    restrictedDomains.some(domain => epart.domainAll.includes(domain)) &&
+    invalidPatterns.some(pattern => epart.domainAll.includes(pattern))
+) {
+    return true;
+}
 
 
     if (epart.localPart[0] != undefined) {
