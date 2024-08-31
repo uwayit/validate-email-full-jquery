@@ -5,7 +5,7 @@
 // Коли починається взаємодія з полем
 // Ховаемо всі повідомлення про помилки в email
 $('.email').bind('change keypress keydown keyup', function () {
-    $(this).removeClass('error');
+    $(this).removeClass('errorField');
     $('.errormail').hide();
     // Знімаємо блокування кнопки відправки форми (якщо потрібно)
     // Для цього кнопка має містити .testEmailButton
@@ -27,44 +27,38 @@ function testEmail(emailObj) {
     // приводимо до нижнього регістру
     email = initialPreparation(email);
 
-    // Згладжуємо можливі баги в тому числі баги placeholder etc
-    if (!email || email === 'email') {
-        $(emailObj).val('');
-        $(emailObj).addClass('error');
+    // Згладжуємо можливі (js) баги value, placeholder etc
+    if (!email || email === 'email' || email === 'youremail') {
+        sendError(emailObj, 'placeholder');
+        // Перериваємо подальші перевірки
         return false;
     }
 
     // Тихо видаляємо www в мильнику, бо то явно помилка і йдемо далі
-    // АЛЕ
-    // Краще насправді не видаляти і не йти далі, а просити клієнта все перевірити і виправити помилки самостійно
-    // Бо кліент вірогідно дуже погано розуміє що таке email і де його взяти
-    // Отож статистично, якщо він вводить email починаючи з www то там неправильно не тільки це, а взагалі все введено від балди
-    // Тож я просто видаляю www, а ви можете наприклад видати помилку (приклади виводу помилок вище)
-    let www = email.split('www.');
-    if (www.length > 1) {
-        email = www.join('');
-    }
+    email = cleanWww(email);
+
+    // Деперсоналізуємо email видаляючи з нього додаткові фільтруючі патерни
+    // myemail+work@gmail.com = myemail@gmail.com
+    email = clearPlus(email);
 
     // Перевірка та мовчазне непомітне для клієнта виправлення найбільш типових та явних друкарських помилок у мильниках
     email = email.replace('yandex.com.ua', 'yandex.ua');
     email = email.replace('gmail.com.ua', 'gmail.com');
-
-    // Після видалення www
-    // Деперсоналізуємо email видаляючи з нього додаткові фільтруючі патерни
-    // myemail+work@gmail.com = myemail@gmail.com
-    email = clearPlus(email);
 
     // Розбираємо email на частини
     let epart = {};
     // Якщо точка є, то тут буде кількість символів до точки
     epart['lastPoint'] = email.lastIndexOf('.');
     // Якщо собачка є, то тут буде кількість символів до собачки
-    epart['lastAt'] = email.lastIndexOf('@'); 
+    epart['lastAt'] = email.lastIndexOf('@');
     epart['domainZone'] = correctDomainZone(email.slice(epart['lastPoint'] + 1)); // com
     epart['localPart'] = email.slice(0, epart['lastAt']);   // все до собачки
     epart['domainAll'] = email.slice(epart['lastAt'] + 1); // gmail.com
-    epart['domainOnly'] = email.slice(epart['lastAt'] + 1, epart['lastPoint']); // gmail
+    epart['domainOnly'] = email.slice(epart['lastAt'] + 1, epart['lastPoint']); // gmail or subdomain.domain
 
+    // Тут потрібно перезібрати, щоб всі зміни накшталт correctDomainZone було застосовано
+    email = sborka(epart);
+    
     // Оголошуємо перевірки
     // Для чого оголошуємо? Для зручності подальшого налаштування
     // Звдяки цьому, будь який рядок з непотрібною функцією НИЖЧЕ можна закоментувати, наприклад
@@ -141,15 +135,15 @@ function testEmail(emailObj) {
 
     // Автоматично виправляємо найпоширеніші друкарські помилки в домені
     epart.domainOnly = correctName(epart.domainOnly);
+    email = sborka(epart);
 
-
-    // Якщо домена зона складається більше ніж з 4 букв, то це помилка
+    // Якщо домена зона складається більше ніж з N букв (3-5), то це найвірогідніше помилка
     domainZoneLenghtTest = domainZoneLenght(epart.domainZone);
     if (domainZoneLenghtTest) {
         sendError(emailObj, 'domainZoneLenght');
-            return false;
+        return false;
     }
-    
+
     // Не даємо клієнту вказувати ящики на перелічених нижче доменах та доменних зонах
     // Здебільшого це захист від помилкового введення того що після собачки
     stopDomainALLTest = stopDomainALL(email);
@@ -184,7 +178,7 @@ function testEmail(emailObj) {
     // Тож в ідеалі треба забороняти використовувати yandex email що починаються з телефонів 
     // І вимагати вказання кореневого email
     // Я не використовую цю перевірку, бо не працюю на сосії
-    // yaphoneTest = yaPhone(email);
+    yaphoneTest = yaPhone(epart);
     if (yaphoneTest) {
         sendError(emailObj, 'yaphoneTest');
         return false;
@@ -216,9 +210,11 @@ function testEmail(emailObj) {
     // Якщо все окей, знімаємо блокування кнопки відправки форми
     $('.testEmailButton').prop('disabled', true);
     $('.testEmailButton').addClass('disbtn');
+
+
     // Виводимо змінений email в формі візуально
     $(emailObj).val(email);
-
+    // Відаємо 
     return email;
 
 }
@@ -229,9 +225,15 @@ function testEmail(emailObj) {
 function sendError(emailObj, error) {
     console.log(error);
     $('.' + error).show();
-    $(emailObj).addClass('error');
+    $(emailObj).addClass('errorField');
     return true;
 }
+
+// Збираємо email з частин
+function sborka(epart) {
+    return epart['localPart'] + '@' + epart['domainOnly'] + '.' + epart['domainZone'];;
+}
+
 
 
 // Тихо видаляє з поля з email УСІ пробіли та знак "+" на початку мила
@@ -248,6 +250,19 @@ function initialPreparation(email) {
     return email
 }
 
+// Тихо видаляємо www в мильнику, бо то явно помилка і йдемо далі
+// АЛЕ
+// Краще насправді не видаляти і не йти далі, а просити клієнта все перевірити і виправити помилки самостійно
+// Бо кліент вірогідно дуже погано розуміє що таке email і де його взяти
+// Отож статистично, якщо він вводить email починаючи з www то там неправильно не тільки це, а взагалі все введено від балди
+// Тож я просто видаляю www, а ви можете наприклад видати помилку (приклади виводу помилок вище)
+function cleanWww(email) {
+    if (email.startsWith("www.")) {
+        return email.substring(4);
+    }
+    return email;
+}
+
 // якщо плюс у середині мила: Тихо видаляє знак плюс "+" і все, що після нього до собачки
 // Дозволяє деперсоналізувати введення email
 function clearPlus(email) {
@@ -260,6 +275,7 @@ function clearPlus(email) {
 
 
 // Перевіряємо на наявність цифри в домені
+// Ми недопускаємо цифри (хоч в корпоративних вони можливі, але неймовірно рідкісні)
 function numberTest(domainAll) {
     return /\d/.test(domainAll);
 }
@@ -292,9 +308,11 @@ function isLie(email) {
 }
 
 
-// Валідація регулярним виразом
+// Додаткова валідація регулярним виразом
+// Грубо первіряє на коректність конструкції
+// Не дозволяє кирилицю
 function validateEmail(email) {
-    let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    let re = /^([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,12}$/;
     return re.test(email);
 }
 
@@ -309,7 +327,7 @@ function tireStop(domainOnly, localPart) {
     ) {
         return true;
     }
-        return false;
+    return false;
 }
 
 // Якщо Ваші листи не можливо доставити на якісь домени, або ви НЕ хочете доставляти на них
@@ -331,17 +349,16 @@ function neNa(domainAll) {
 // І вимагати вказання кореневого email
 function yaPhone(epart) {
     // Перевіряємо, чи містить домен "yandex" або "ya.ru"
-    if (epart['domainOnly'].includes('yandex') || epart['domainOnly'].includes('ya.ru')) {
-        // Перевіряємо відповідність телефонним кодам країн
+    if (/yandex|ya\.ru/.test(epart['domainAll'])) {
         const phoneCodes = [
             /^380/, // Україна
             /^37/,  // Білорусь, Молдова, Латвія, Вірменія
             /^99/,  // Грузія, Киргизстан, Таджикистан, Узбекистан
             /^79/,  // РФ
             /^89/,  // РФ
-            /^371/, // Латвія
             /^77/   // Казахстан
         ];
+
         // Якщо локальна частина починається з телефонного коду і містить тільки цифри
         if (phoneCodes.some(code => code.test(epart['localPart'])) && /^\d{11,13}$/.test(epart['localPart'])) {
             return true;
@@ -349,6 +366,7 @@ function yaPhone(epart) {
     }
     return false;
 }
+
 
 
 
@@ -460,57 +478,49 @@ function correctName(domainOnly) {
 // Не даємо клієнту вказувати email на перелічених нижче доменах та зонах
 // Здебільшого це неймовірно тупі помилки
 // Дєякі помилки можна було б виправляти автоматично, але ми ітак багато помилок виправляємо автоматично і це вже нюанси
-function stopDomainALL(email) {
+function stopDomainALL(epart) {
     let email_not_valid = [
         // УВАГА!!! Всі домени та зони нижче потрібно вводити в нижньому регістрі
-        // ошибочные или абсолютно левые домены. Это как правило опечатки или попытки указать хоть что-то "дабы пропустило" из-за неимения личного мыла
-        '@com.ua', '@ua.com', '@kom.ua', '@kis.ru', '@kom.ru', '@com.ru', '@ru.com', '@meil.com', '@mael.com', '@emeil.ru', '@emeil.com', '@imeil.ua', '@com.com',
-        '@net.ua', '@net.ru', '@com.net', '@example.com', '@sitemail.com', '@site.com', '@email.com', '@mailcom.ru',
-
+        'com.ua', 'ua.com', 'kom.ua', 'kis.ru', 'kom.ru', 'com.ru', 'ru.com', 'meil.com', 'mael.com', 'emeil.ru', 'emeil.com', 'imeil.ua', 'com.com',
+        'net.ua', 'net.ru', 'com.net', 'example.com', 'sitemail.com', 'site.com', 'email.com', 'mailcom.ru',
 
         // Разные мелкачи типа yahoo rambler hotmail яблоки icloud и т.п.  и связанные с ними опечатки
-        '@yahoo.net', '@hotmail.ru', '@ramler.ru', '@ramdler.ru', '@rambler.com', '@yaho.com',
+        'yahoo.net', 'hotmail.ru', 'ramler.ru', 'ramdler.ru', 'rambler.com', 'yaho.com',
         // Популярные украинские почтовики
-        '@ua.net', '@ykr.net', '@ykt.net', '@ukt.net', '@ucr.net', '@ukr.com',
-        
-        '@bigmir.ua', '@bigmir.com',
+        'ua.net', 'ykr.net', 'ykt.net', 'ukt.net', 'ucr.net', 'ukr.com',
+
+        'bigmir.ua', 'bigmir.com',
 
         // Осторожней с этим GMAIL
-        '@gmail.ru', '@gmail.ua', '@gmail.com.ua', '@gmail.com.ru',
+        'gmail.ru', 'gmail.ua', 'gmail.com.ua', 'gmail.com.ru',
 
         // YANDEX 
-        '@ya.ua', '@ya.com',
-        '@yande.ru', '@yande.ua',
+        'ya.ua', 'ya.com',
+        'yande.ru', 'yande.ua',
 
         // MAIL.RU и вся их орда
-        '@inboks.ru', '@indox.ru',
-        '@list.ua', '@list.com', '@iist.ru', '@iist.ua',
-        '@bk.com', '@bk.ua', '@dk.com', '@br.com', '@dk.ru', '@br.ru', '@bl.ru', '@bj.ru',
-        '@vk.ru', '@vk.com', '@vkontakte.ru',
-        '@mail.com', '@mail.com.ua', '@mail.com.ru',
-
-
+        'inboks.ru', 'indox.ru',
+        'list.ua', 'list.com', 'iist.ru', 'iist.ua',
+        'bk.com', 'bk.ua', 'dk.com', 'br.com', 'dk.ru', 'br.ru', 'bl.ru', 'bj.ru',
+        'vk.ru', 'vk.com', 'vkontakte.ru',
+        'mail.com', 'mail.com.ua', 'mail.com.ru',
     ];
-    let from = email.search('@');
-    let to = email.length;
-    let new_email = email.substring(from, to);
+
+
 
     let domain_not_valid = [
         // Зони які точно не вірні і які неможливо розібрати
-        '.yy', '.aa'
+        'yy', 'aa'
     ];
 
 
-
     for (let cx = 0; cx < email_not_valid.length; cx++) {
-        if (email_not_valid[cx] == new_email) {
+        if (email_not_valid[cx] == epart.domainAll) {
             return true; // Помилка
         }
     }
     for (let cx = 0; cx < domain_not_valid.length; cx++) {
-        from = to - domain_not_valid[cx].length;
-        let email_domain = email.substring(from, to);
-        if (email_domain == domain_not_valid[cx]) {
+        if (epart.domainZone == domain_not_valid[cx]) {
             return true; // Помилка
         }
     }
@@ -533,9 +543,10 @@ function oneLetter(domainAll) {
 }
 
 
-// Якщо домена зона складається більше ніж з 4 букв, то це помилка
+// Якщо домена зона складається більше ніж з 5 букв, то це помилка
+// Спірне рішення, бо корпоративні пошти можуть були усілякі - .place наприклад
 function domainZoneLenght(domainZone) {
-    if (domainZone.length > 4) {
+    if (domainZone.length > 5) { // 3 - якшо ресурс не розрахований під корпоративних клієнтів
         return true;
     }
     return false
@@ -543,7 +554,7 @@ function domainZoneLenght(domainZone) {
 
 // Якщо домена зона - є в цьому переліку, то повертаємо помилку
 function badZone(domainZone) {
-    if (domainZone == '.xxx' || domainZone == '.biz' || domainZone == '.cc') {
+    if (domainZone == 'xxx' || domainZone == 'biz' || domainZone == 'cc') {
         return true;
     }
     return false
@@ -577,16 +588,16 @@ function minLength(epart) {
 // Інші перевірки всі на купу поки що
 function sintaksisValid(epart) {
 
-// Перелік поштовиків які ТОЧНО не допускають два "символи", що йдуть один за одним
-const restrictedDomains = ['ya.ru', 'yandex', 'mail.ru', 'bk.ru', 'mail.ua', 'inbox.ru', 'gmail.com', 'list.ru'];
-const invalidPatterns = ['..', '-.', '.-', '_.', '._', '--', '-_', '_-', '__'];
+    // Перелік поштовиків які ТОЧНО не допускають два "символи", що йдуть один за одним
+    const restrictedDomains = ['ya.ru', 'yandex', 'mail.ru', 'bk.ru', 'mail.ua', 'inbox.ru', 'gmail.com', 'list.ru'];
+    const invalidPatterns = ['..', '-.', '.-', '_.', '._', '--', '-_', '_-', '__'];
 
-if (
-    restrictedDomains.some(domain => epart.domainAll.includes(domain)) &&
-    invalidPatterns.some(pattern => epart.domainAll.includes(pattern))
-) {
-    return true;
-}
+    if (
+        restrictedDomains.some(domain => epart.domainAll.includes(domain)) &&
+        invalidPatterns.some(pattern => epart.localPart.includes(pattern))
+    ) {
+        return true;
+    }
 
 
     if (epart.localPart[0] != undefined) {
@@ -598,7 +609,7 @@ if (
         )
             return true;
 
-        // Мило не може закінчуватися (перед собачкою, та й у принципі до речі) на наступні символи в жодної з поштовиків
+        // Мило  безпосередньо перед собачкою не може містити наступні символи в жодної з поштовиків
         if (
             epart.localPart[epart.localPart.length - 1].indexOf('.') != -1 ||
             epart.localPart[epart.localPart.length - 1].indexOf('-') != -1 ||
@@ -606,8 +617,6 @@ if (
         )
             return true;
     }
-
-
 
 
 
