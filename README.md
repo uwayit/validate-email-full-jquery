@@ -1,24 +1,80 @@
-# validate email full jquery
+# 🚀 Advanced Email Validation (PHP 8.4+ & JS ES6+)
 
-This set of functions allows you to significantly reduce the number of incorrectly entered emails, especially on projects where there is an increased number of users who are not well versed in the Internet.
+**Найкраща бібліотека для валідації, очищення та нормалізації email-адрес, заснована на роках збору реальних даних про помилки користувачів.**
 
-Some of the most common micro errors are corrected silently and automatically without distracting the user, thanks to the experience gained over several years in real projects, after which the function returns the corrected version and accepts it as valid:  
-gmeil.com  
-qmail.com  
-gmail.con  
-mail.ya  
-ykr.met  
-yandx.ry  
-and thousands of other combinations are corrected to be correct.  
+Цей проект — не просто перевірка через Regular Expression. Це результат багаторічного аналізу мільйонів реєстрацій, збору типових друкарських помилок ("typos") та боротьби з фейковими даними. Бібліотека синхронізована для роботи як на стороні клієнта (JS), так і на стороні сервера (PHP).
 
-At the same time, it seems important to prevent multiple registrations from the same email.  
-For this purpose, we remove from email all tricks that can allow users to use it many times.  
-**That is:**    
-my.Email+wOrk@googlemail.COM  
-**We clean to its root**  
-myemail@gmail.com  
+JS [validate-email-full-jquery](https://github.com/uwayit/validate-email-full-jquery)
+PHP [validate-email-full-php](https://github.com/uwayit/validate-email-full-php)
 
-Детальна інструкція [українською](./README.ua.md)  
-Detailed instructions in [english](./README.en.md)  
+---
 
-**P.S.: The script code is well commented, but only in Ukrainian!**  
+## 🌟 Чому ця бібліотека?
+
+На відміну від стандартних валідаторів, цей інструмент "розуміє" намір користувача. В неї вкладено:
+*   **Роки збору даних**: Списки помилок (наприклад, `gmaill`, `yandax`, `con` замість `com`) збиралися та шліфувалися роками.
+*   **Інтелектуальна авто-корекція**: Система не просто каже "помилка", вона тихо виправляє `yandex.com.ua` на `yandex.ua` або `gmоil` на `gmail`.
+*   **Нормалізація (Anti-Fraud)**: Запобігає реєстрації дублікатів через синоніми (напр. `user.name@gmail.com` та `username@googlemail.com` — це один акаунт).
+*   **Детекція анонімайзерів**: Велика база сервісів тимчасових пошт, яка постійно оновлюється.
+
+---
+
+## 🛠 Ключові фішки
+
+### 1. Глибокий синтаксичний аналіз
+*   Заборона подвійних крапок, тире чи підкреслень (`..`, `--`, `._`).
+*   Перевірка на допустимі символи на початку та в кінці локальної частини.
+*   Обмеження глибини піддоменів (захист від сміттєвих хостів).
+
+### 2. Списки "Lie" та анонімайзерів
+*   Блокування відверто брехливих адрес (`test@test.com`, `mail@mail.ru`).
+*   Автоматична перевірка на збіг домену пошти з доменом вашого сайту (захист від "фейків").
+
+### 3. Специфічні правила провайдерів
+*   **Yandex**: Детекція пошт, що є номерами телефонів.
+*   **Gmail/Proton/iCloud**: Автоматичне видалення крапок та приведення до еталонного вигляду.
+*   **Мінімальна довжина**: Різні правила для різних доменів (напр. `i.ua` — мін. 6 символів, `mail.ru` — мін. 3).
+
+---
+
+## 💻 Використання
+
+### PHP (Версія 8.4+)
+Клас оптимізований під сучасний PHP: сувора типізація, `match` вирази та мінімальне споживання ресурсів.
+
+```php
+require_once 'lib/validateEmail.php';
+
+$validator = new validateEmail("vova-1999@yandax.ru");
+
+if ($validator->hasError()) {
+    echo "Помилка: " . $validator->getError(); 
+} else {
+    echo "Виправлений email: " . $validator->getEmail(); // vova.1999@yandex.ru
+}
+```
+
+### JavaScript (jQuery + ES6)
+Професійно інкапсульований код, який не конфліктує з іншими бібліотеками.
+
+```javascript
+// Автоматично підхоплює поля з класом .email
+// Блокує кнопки .sendButton при виявленні помилок
+let result = testEmail($('#email_input'));
+
+if (result) {
+    console.log("Валідний email: " + result);
+}
+```
+
+---
+
+## 📈 Еволюція даних
+Ця бібліотека — це "живий" організм. Списки `nameCorrections` та `domainCorrections` містять сотні варіацій помилок, які роблять живі люди. Використовуючи її, ви отримуєте досвід тисяч годин модерації та технічної підтримки реальних проектів.
+
+## 📄 Ліцензія
+Це відкрите програмне забезпечення. Ви можете вільно використовувати його у своїх проектах.
+
+---
+**Author**: [uwayit](https://github.com/uwayit)  
+**Feedback**: Якщо ви знайшли нову цікаву друкарську помилку — створюйте Issue!
